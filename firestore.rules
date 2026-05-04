@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net: Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow create: if isOwner(userId) 
+        && request.resource.data.keys().hasAll(['displayName', 'email', 'photoURL', 'createdAt'])
+        && request.resource.data.createdAt == request.time;
+      allow update: if isOwner(userId) 
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    // 2. Nutrition Distributions
+    match /nutritionDistributions/{id} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.timestamp == request.time
+        && request.resource.data.schoolName is string && request.resource.data.schoolName.size() <= 200
+        && request.resource.data.menu is string && request.resource.data.menu.size() <= 500
+        && request.resource.data.portions is number && request.resource.data.portions > 0;
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // 3. Food Qualities
+    match /foodQualities/{id} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow create: if isSignedIn() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.timestamp == request.time
+        && request.resource.data.schoolName is string && request.resource.data.schoolName.size() <= 200
+        && request.resource.data.taste is number && request.resource.data.taste >= 1 && request.resource.data.taste <= 5
+        && request.resource.data.temperature is number && request.resource.data.temperature >= 1 && request.resource.data.temperature <= 5
+        && request.resource.data.cleanliness is number && request.resource.data.cleanliness >= 1 && request.resource.data.cleanliness <= 5;
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    function isAdmin() {
+      // In a real app, you'd check a custom claim or an admins collection
+      // For this demo, we'll assume the first user or a specific UID could be admin
+      return false; 
+    }
+  }
+}

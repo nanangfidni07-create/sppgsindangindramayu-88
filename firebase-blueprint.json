@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "NutritionDistribution": {
+      "title": "Nutrition Distribution",
+      "description": "Records of food distribution to schools.",
+      "type": "object",
+      "properties": {
+        "schoolId": { "type": "string", "description": "ID of the school" },
+        "schoolName": { "type": "string", "description": "Name of the school" },
+        "menu": { "type": "string", "description": "Food menu details" },
+        "portions": { "type": "number", "description": "Number of portions distributed" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["schoolId", "schoolName", "menu", "portions", "timestamp", "userId"]
+    },
+    "FoodQuality": {
+      "title": "Food Quality Assessment",
+      "description": "Records of food quality assessments at schools.",
+      "type": "object",
+      "properties": {
+        "schoolId": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "taste": { "type": "number", "description": "Rating for taste (1-5)" },
+        "temperature": { "type": "number", "description": "Rating for temperature (1-5)" },
+        "cleanliness": { "type": "number", "description": "Rating for cleanliness (1-5)" },
+        "notes": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["schoolId", "schoolName", "taste", "temperature", "cleanliness", "timestamp", "userId"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "Basic user information.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "nutritionDistributions/{id}": {
+      "schema": "NutritionDistribution",
+      "description": "Collection of nutrition distribution records"
+    },
+    "foodQualities/{id}": {
+      "schema": "FoodQuality",
+      "description": "Collection of food quality assessment records"
+    },
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles"
+    }
+  }
+}
